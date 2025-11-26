@@ -16,26 +16,25 @@ The system manages teachers, subjects, questions, answers, and full exam creatio
 - Clean OOP architecture and modular design
 
 ---
-
-## 🗂 Project Structure
+```
 src/
-├─ Main.java
-├─ DBConnection.java
-├─ Exam.java
-├─ ExamManager.java
-├─ Teacher.java
-├─ TeacherManager.java
-├─ Subject.java
-├─ SubjectPool.java
-├─ QuestionPool.java
-├─ AnswerPool.java
-├─ OpenQuestion.java
-├─ SelectionQuestion.java
-├─ QuestionAnswerLinker.java
-└─ module-info.java
+ ├─ Main.java
+ ├─ DBConnection.java
+ ├─ Exam.java
+ ├─ ExamManager.java
+ ├─ Teacher.java
+ ├─ TeacherManager.java
+ ├─ Subject.java
+ ├─ SubjectPool.java
+ ├─ QuestionPool.java
+ ├─ AnswerPool.java
+ ├─ OpenQuestion.java
+ ├─ SelectionQuestion.java
+ ├─ QuestionAnswerLinker.java
+ └─ module-info.java
 
 EXAMDB.sql
-
+```
 
 
 ---
