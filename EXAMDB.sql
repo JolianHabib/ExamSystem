@@ -1,0 +1,152 @@
+CREATE TABLE Subject(
+    SID SERIAL PRIMARY KEY,
+    SName VARCHAR(50) NOT NULL
+);
+
+INSERT INTO Subject(SName) VALUES ('math');
+INSERT INTO Subject(SName) VALUES ('English');
+SELECT * FROM Subject;
+
+CREATE TABLE Question(
+    QuestionText VARCHAR(500) NOT NULL,
+	QDefault VARCHAR(10) CHECK (QDefault IN('Easy','Medium','Hard')),
+	QID SERIAL PRIMARY KEY,
+	SID INT ,
+	IsOpenQuestion BOOLEAN NOT NULL,
+	FOREIGN KEY (SID) REFERENCES Subject(SID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+);
+
+INSERT INTO Question(QuestionText, QDefault, SID, IsOpenQuestion) VALUES ('4+5=','Easy',1, FALSE);
+INSERT INTO Question(QuestionText, QDefault, SID, IsOpenQuestion) VALUES ('102*4=','Medium',1, FALSE);
+INSERT INTO Question(QuestionText, QDefault, SID, IsOpenQuestion) VALUES ('When do we use "will" in a sentence?','Hard',2, TRUE);
+
+
+CREATE TABLE Answer(
+    AnswerText VARCHAR(500) NOT NULL,
+	AID SERIAL PRIMARY KEY,
+	SID INT ,
+	Correct BOOLEAN DEFAULT FALSE ,
+	FOREIGN KEY (SID) REFERENCES Subject(SID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+);
+
+INSERT INTO Answer(AnswerText, SID) VALUES('9',1);
+INSERT INTO Answer(AnswerText, SID) VALUES('144',1);
+INSERT INTO Answer(AnswerText, SID) VALUES('0',1);
+INSERT INTO Answer(AnswerText, SID) VALUES('We use will to talk about the future',2);
+INSERT INTO Answer(AnswerText, SID) VALUES('Present Simple',2);
+
+CREATE TABLE QuestionAnswer(
+    QID INT REFERENCES Question(QID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	AID INT REFERENCES Answer(AID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	ISAnswerCorrect BOOLEAN,
+	PRIMARY KEY (QID, AID)
+);
+
+CREATE OR REPLACE FUNCTION CheckQuestionAnswer()
+RETURNS TRIGGER AS $$
+DECLARE
+    IsOpen BOOLEAN;
+	AnswersCount INT;
+BEGIN
+    SELECT IsOpenQuestion INTO IsOpen 
+	FROM Question 
+	WHERE QID = NEW.QID;
+
+	SELECT COUNT (*) INTO AnswersCount
+	FROM QuestionAnswer
+	WHERE QID = NEW.QID;
+
+	IF IsOpen = TRUE AND AnswersCount >= 1 
+	THEN RAISE EXCEPTION 'A';
+	END IF;
+
+	IF IsOpen = FALSE AND AnswersCount>=10 
+	THEN RAISE EXCEPTION 'B';
+	END IF;
+
+	RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE TRIGGER TrgCheckQuestionAnswer
+BEFORE INSERT ON QuestionAnswer
+FOR EACH ROW 
+EXECUTE FUNCTION CheckQuestionAnswer();
+
+
+INSERT INTO QuestionAnswer(QID, AID,ISAnswerCorrect) VALUES (1, 1, TRUE);
+INSERT INTO QuestionAnswer(QID, AID,ISAnswerCorrect) VALUES (1, 2, FALSE);
+INSERT INTO QuestionAnswer(QID, AID,ISAnswerCorrect) VALUES (1, 3, FALSE);
+INSERT INTO QuestionAnswer(QID, AID,ISAnswerCorrect) VALUES (3, 4, TRUE);
+
+CREATE TABLE Teacher(
+    TID VARCHAR(9) PRIMARY KEY,
+	TName VARCHAR(100) NOT NULL,
+	EmploymentDate DATE NOT NULL,
+	PhoneNumber VARCHAR(10),
+	CHECK (LENGTH(TID) = 9)
+);
+
+INSERT INTO Teacher (TID, Tname,EmploymentDate,PhoneNumber) VALUES ('211613526', 'Jolian Habib', '2022-10-10','0526692936');
+
+CREATE TABLE TeacherTeachSubject(
+    TID VARCHAR(9), 
+	SID INT, 
+	PRIMARY KEY (TID, SID),
+	FOREIGN KEY (TID) REFERENCES Teacher(TID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	FOREIGN KEY (SID) REFERENCES Subject (SID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
+);
+
+INSERT INTO TeacherTeachSubject(TID, SID) VALUES ('211613526', 1); 
+INSERT INTO TeacherTeachSubject(TID, SID) VALUES ('211613526', 2); 
+
+CREATE TABLE Exam(
+    EID SERIAL PRIMARY KEY,
+	CreatDate DATE DEFAULT CURRENT_DATE,
+	SID INT REFERENCES Subject (SID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	TID VARCHAR (9) REFERENCES Teacher (TID)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE
+);
+
+INSERT INTO Exam (SID, TID) VALUES (2, '211613526');
+
+CREATE TABLE ExamQuestion(
+    EID INT REFERENCES Exam(EID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	QID INT REFERENCES Question(QID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	PRIMARY KEY (EID, QID)
+);
+
+INSERT INTO ExamQuestion (EID, QID) VALUES (1,1);
+INSERT INTO ExamQuestion (EID, QID) VALUES (1,2);
+
+SELECT * FROM ExamQuestion;
+SELECT * FROM Exam; 
+SELECT * FROM TeacherTeachSubject;
+SELECT * FROM Teacher;
+SELECT * FROM Subject;
+SELECT * FROM Question;
+SELECT * FROM Answer;
+SELECT * FROM QuestionAnswer;
+
